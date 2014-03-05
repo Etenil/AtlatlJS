@@ -10,8 +10,11 @@ app.controllers = {
 		HTML.query('#display').innerHTML = 'Index <a href="#/toto">toto</a>';
 	},
 	toto: function() {
-		var data = atlatl.ajax('test.html', function(data) {
-			HTML.query('#display').innerHTML = data;
+		var data = atlatl.ajax({
+			url: 'test.html',
+			success: function(data) {
+				HTML.query('#display').innerHTML = data;
+			}
 		});
 	}
 }

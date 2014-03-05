@@ -27,16 +27,16 @@ var atlatl = {
 		}
 	},
 	
-	ajax: function(url, callback) {
-		this.bindFunction = function(caller, object) {
-			return function() {
-            	return caller.apply(object, [object]);
-            };
-        };
-
+	ajax: function(settings) {
         this.stateChange = function(object) {
-            if(this.request.readyState==4) {
-                this.callbackFunction(this.request.responseText);
+            if(that.request.readyState == 4) {
+				var result = null;
+				if(that.type == 'json') {
+					result = JSON.parse(that.request.responseText);
+				} else {
+					result = that.request.responseText;
+				}
+                that.success(result);
 			}
         };
 
@@ -50,26 +50,50 @@ var atlatl = {
             return false;
         };
 
-        this.postBody = (arguments[2] || "");
+		function preparePost(data) {
+			var post = '';
+			for(var key in data) {
+				if(post.length > 0) post+= '&';
+				post+= encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
+			}
+			
+			return post;
+		}
 
-        this.callbackFunction = callback;
-        this.url=url;
+		// Defaults
+		var that = this;
+		this.method = 'GET';
+		this.data = {};
+		this.type = 'raw';
+		this.success = null;
+		this.error = null;
         this.request = this.getRequest();
+
+		// Reading the provided settings.
+		if(!settings.url) {
+			console.log('No URL provided!');
+			return false;
+		}
+		this.url = settings.url;
+		if(settings.method) this.method = settings.method.toUpperCase();
+		if(settings.data) this.data = settings.data;
+		if(settings.type) this.type = settings.type.toLowerCase();
+		if(settings.success) this.success = settings.success;
+		if(settings.error) this.error = settings.error;
 
         if(this.request) {
             var req = this.request;
-	        req.onreadystatechange = this.bindFunction(this.stateChange, this);
-
-	        if(this.postBody !== "") {
-	        	req.open("POST", url, true);
-	            req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-	            req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-	            req.setRequestHeader('Connection', 'close');
-	        } else {
-	            req.open("GET", url, true);
-	        }
-
-	        req.send(this.postBody);
+	        req.onreadystatechange = this.stateChange;
+	        req.open(this.method, this.url, true);
+	        req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		    req.setRequestHeader('Connection', 'close');
+		
+			if(this.data) {
+	        	req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+				req.send(preparePost(this.data));
+			} else {
+				req.send();
+			}
         }
 	}
 }
