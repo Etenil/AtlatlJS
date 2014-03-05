@@ -1,4 +1,4 @@
-var atlatl = {
+window.atlatl = {
 	App: function() {
 		var that = this;
 
@@ -24,6 +24,50 @@ var atlatl = {
 		window.onhashchange = function(e) {
 			that.serve();
 			return false;
+		}
+	},
+	
+	Model: function(endpoint) {
+		var that = this;
+		this.endpoint = endpoint;
+		this.id = null;
+
+		this.fetch = function(id, callback) {
+			if(id) {
+				atlatl.ajax({
+					url: (this.endpoint + '/' + id),
+					type: 'JSON',
+					method: 'GET',
+					success: callback
+				});
+			} else {
+				atlatl.ajax({
+					url: this.endpoint,
+					type: 'JSON',
+					method: 'GET',
+					success: callback
+				})
+			}
+		};
+		
+		this.save = function(callback) {
+			atlatl.ajax({
+				url: this.endpoint,
+				type: 'JSON',
+				method: (that.id ? 'PUT' : 'POST'),
+				data: that.data,
+				success: callback
+			});
+		};
+		
+		this.drop = function(callback) {
+			atlatl.ajax({
+				url: this.endpoint,
+				type: 'JSON',
+				method: 'DELETE',
+				data: that.data,
+				success: callback
+			})
 		}
 	},
 	
